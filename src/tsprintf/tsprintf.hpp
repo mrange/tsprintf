@@ -351,7 +351,8 @@ namespace typesafe_printf
         encoded_type  = EncodedTypes & type_id__mask ,
       };
 
-      using arg_type = std::decay_t<THead>;
+      // using arg_type = std::decay_t<THead>;
+      using arg_type = typename std::decay<THead>::type;  // std::decay_t doesn't exist in GCC 4.8.1 
       using exp_type = type_id_map_t<encoded_type>;
 
       using type    = typename error_reporter<Pos, arg_type, exp_type>::type;

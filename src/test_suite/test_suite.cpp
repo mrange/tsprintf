@@ -23,10 +23,12 @@ int main()
   TS_PRINTF ("Hello\n");
   TS_PRINTF ("Hello %s,%lld\n", "World", 3LL);
 
+  /*
   TS_PRINTF (
       "Due to type mismatch compilation stops here... %d\n"
     , "Because this is not an int"
     );
+  */
 
   return 0;
 }
