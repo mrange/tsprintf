@@ -29,8 +29,8 @@
     using type = value;                       \
   }
 
-#define TS_PRINTF(format, ...)                                                                                      \
-  (void) typesafe_printf::details::check_types<typesafe_printf::details::scanner::encode (format)> (##__VA_ARGS__); \
+#define TS_PRINTF(format, ...)                                                                                    \
+  (void) typesafe_printf::details::check_types<typesafe_printf::details::scanner::encode (format)> (__VA_ARGS__); \
   printf (format, ##__VA_ARGS__)
 
 namespace typesafe_printf
@@ -202,6 +202,9 @@ namespace typesafe_printf
       }
 
       template<size_type N>
+      constexpr encoded_types_t scan (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept;
+
+      template<size_type N>
       constexpr encoded_types_t error_detected (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
       {
         return scan (merge_type (ec, count, tid__error_type), count + 1, arr, i);
@@ -315,11 +318,11 @@ namespace typesafe_printf
       using type = TExpected;
     };
 
-    template<size_type Pos, encoded_types_t EncodedTypes, typename ...TArgs>
+    template<bool HasMoreEncodedTypes, size_type Pos, encoded_types_t EncodedTypes, typename ...TArgs>
     struct type_checker;
 
     template<size_type Pos, typename ...TArgs>
-    struct type_checker<Pos, 0U, TArgs...>
+    struct type_checker<false, Pos, 0U, TArgs...>
     {
       static_assert (0U == sizeof... (TArgs), "Too many arguments passed to ts_printf (see format string)");
 
@@ -330,7 +333,7 @@ namespace typesafe_printf
     };
 
     template<size_type Pos, encoded_types_t EncodedTypes>
-    struct type_checker<Pos, EncodedTypes>
+    struct type_checker<true, Pos, EncodedTypes>
     {
       static_assert (0U == EncodedTypes, "Too few arguments passed to ts_printf (see format string)");
 
@@ -341,7 +344,7 @@ namespace typesafe_printf
     };
 
     template<size_type Pos, encoded_types_t EncodedTypes, typename THead, typename ...TArgs>
-    struct type_checker<Pos, EncodedTypes, THead, TArgs...> : type_checker<Pos + 1, (EncodedTypes >> type_id__bits), TArgs...>
+    struct type_checker<true, Pos, EncodedTypes, THead, TArgs...> : type_checker<(EncodedTypes >> type_id__bits) != 0, Pos + 1, (EncodedTypes >> type_id__bits), TArgs...>
     {
       enum : encoded_types_t
       {
@@ -359,7 +362,7 @@ namespace typesafe_printf
     constexpr int check_types (TArgs && ...args) noexcept
     {
       static_assert (sizeof... (TArgs) <= details::max_encoded_types, "Too many arguments passed to ts_printf (max_encoded_types is the upper limit)");
-      return type_checker<0U, EncodedTypes, TArgs...>::zero;
+      return type_checker<EncodedTypes != 0, 0U, EncodedTypes, TArgs...>::zero;
     }
   }
 

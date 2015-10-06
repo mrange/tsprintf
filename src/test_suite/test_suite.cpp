@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------------------------
-// Copyright 2015 Mårten Rånge
+// Copyright 2015 MÃ¥rten RÃ¥nge
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 int main()
 {
+  TS_PRINTF ("Hello\n");
   TS_PRINTF ("Hello %s,%lld\n", "World", 3LL);
 
   /*
