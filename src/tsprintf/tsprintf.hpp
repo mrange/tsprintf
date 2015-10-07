@@ -17,10 +17,14 @@
 #ifndef TYPESAFE_PRINTF__TSPRINTF_HPP
 #define TYPESAFE_PRINTF__TSPRINTF_HPP
 
+#include <cassert>
 #include <cstdio>
 #include <cstdint>
 #include <cwchar>
 #include <type_traits>
+
+#define TYPESAFE_PRINTF__ASSERT assert
+
 
 #define TYPESAFE_PRINTF__TYPE_MAP(key, value) \
   template<>                                  \
@@ -47,6 +51,7 @@ namespace typesafe_printf
 
     enum type_id : size_type
     {
+      tid__illegal                = 0x00  ,
       tid__error_type             = 0x01  ,
       tid__char_p                 = 0x02  ,
       tid__double                 = 0x03  ,
@@ -202,6 +207,19 @@ namespace typesafe_printf
       }
 
       template<size_type N>
+      constexpr bool binary_any_of (char ch, char const (&arr) [N], index_type begin = 0, index_type end = N) noexcept
+      {
+        return begin < end
+          ? (ch < arr[(begin + end)/2]
+            ? binary_any_of (ch, arr, begin, (begin + end) / 2)
+            : (ch > arr[(begin + end)/2]
+              ? binary_any_of (ch, arr, 1 + (begin + end) / 2, end)
+              : true))
+          : false
+          ;
+      }
+
+      template<size_type N>
       constexpr encoded_types_t scan (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept;
 
       template<size_type N>
@@ -235,7 +253,7 @@ namespace typesafe_printf
                       : (arr[i] == 'p'
                         ? compute_type_id (ec, count, at, cs__pointer, arr, i + 1)
                         : error_detected (ec, count, arr, i))))))))
-          : ec
+          : error_detected (ec, count, arr, i)
           ;
       }
 
@@ -244,12 +262,12 @@ namespace typesafe_printf
       constexpr encoded_types_t parse_argument_type_2 (encoded_types_t ec, size_type count, char ch, char const (&arr) [N], index_type i) noexcept
       {
         return i < N && arr[i] != 0
-          ? (arr[i] == 'h' && ch == 'h'
-            ? parse_conversion_specifier (ec, count, at__hh, arr, i + 1)
-            : (arr[i] == 'l' && ch == 'l'
-              ? parse_conversion_specifier (ec, count, at__ll, arr, i + 1)
+          ? (ch == 'h'
+            ? (arr[i] == 'h' ? parse_conversion_specifier (ec, count, at__hh, arr, i + 1) : parse_conversion_specifier (ec, count, at__h, arr, i))
+            : (ch == 'l'
+              ? (arr[i] == 'l' ? parse_conversion_specifier (ec, count, at__ll, arr, i + 1) : parse_conversion_specifier (ec, count, at__l, arr, i))
               : error_detected (ec, count, arr, i)))
-          : ec
+          : error_detected (ec, count, arr, i)
           ;
       }
 
@@ -270,7 +288,7 @@ namespace typesafe_printf
                     : (arr[i] == 'L'
                       ? parse_conversion_specifier (ec, count, at__L, arr, i + 1)
                       : parse_conversion_specifier (ec, count, at__none, arr, i)))))))
-          : ec
+          : error_detected (ec, count, arr, i)
           ;
       }
 
@@ -279,7 +297,7 @@ namespace typesafe_printf
       {
         return i < N && arr[i] != 0
           ? (!any_of (arr[i], union_of_cs_at) ? consume_options (ec, count, arr, i + 1) : parse_argument_type (ec, count, arr, i))
-          : ec
+          : error_detected (ec, count, arr, i)
           ;
       }
 
@@ -288,7 +306,7 @@ namespace typesafe_printf
       {
         return i < N && arr[i] != 0
           ? (arr[i] != '%' ? consume_options (ec, count, arr, i) : scan (ec, count, arr, i + 1))
-          : ec
+          : error_detected (ec, count, arr, i)
           ;
       }
 
@@ -352,7 +370,7 @@ namespace typesafe_printf
       };
 
       // using arg_type = std::decay_t<THead>;
-      using arg_type = typename std::decay<THead>::type;  // std::decay_t doesn't exist in GCC 4.8.1 
+      using arg_type = typename std::decay<THead>::type;  // std::decay_t doesn't exist in GCC 4.8.1
       using exp_type = type_id_map_t<encoded_type>;
 
       using type    = typename error_reporter<Pos, arg_type, exp_type>::type;

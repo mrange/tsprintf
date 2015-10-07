@@ -22,4 +22,9 @@
 #include <cwchar>
 #include <type_traits>
 
+#include <initializer_list>
+#include <iostream>
+#include <tuple>
+#include <vector>
+
 #endif // TYPESAFE_PRINTF__STDAFX_H
