@@ -26,6 +26,7 @@
 #include "../tsprintf/tsprintf.hpp"
 
 
+#define TEST_CASE() TS_PRINTF("%s(%ld) : TEST_CASE - %s\n", __FILE__, __LINE__, __FUNCTION__)
 #define TEST_EQ(expected, actual) test_eq (__FILE__, __LINE__, expected, #expected, actual, #actual)
 
 namespace tests
@@ -131,6 +132,8 @@ namespace tests
 
   void test__scanner ()
   {
+    TEST_CASE ();
+
     constexpr auto max_size = 64;
     using test_case_t = std::tuple<std::string, std::vector<type_id>>;
 
@@ -208,22 +211,39 @@ namespace tests
 
             TEST_EQ (expected, actual);
           }
-
         }
-
       }
     }
   }
 
+  void test__printf_variants ()
+  {
+    TEST_CASE ();
+
+    char buffer[100] {};
+
+    TS_PRINTF   (             "None\n"                        );
+    TS_PRINTF   (             "Pair %s,%lld\n"  , "World", 3LL);
+    TS_SPRINTF  (buffer,      "Int: %d\n"       , 3           );
+    TS_SNPRINTF (buffer, 20,  "Char: %c\n"      , 65          );
+    TS_FPRINTF  (stdout,      "Float: %f\n"     , 3.14        );
+
+  /*
+  TODO: Figure out a good way to test negative test-cases
+  TS_PRINTF (
+      "Due to type mismatch compilation stops here... %d\n"
+    , "Because this is not an int"
+    );
+  */
+
+
+  }
 }
 
 int main()
 {
-/*
-  TS_PRINTF ("Hello\n");
-  TS_PRINTF ("Hello %s,%lld\n", "World", 3LL);
-*/
-  tests::test__scanner ();
+  tests::test__printf_variants  ();
+  tests::test__scanner          ();
 
   if (tests::errors == 0)
   {
@@ -233,14 +253,6 @@ int main()
   {
     TS_PRINTF ("%u tests failed!\n", tests::errors);
   }
-
-
-  /*
-  TS_PRINTF (
-      "Due to type mismatch compilation stops here... %d\n"
-    , "Because this is not an int"
-    );
-  */
 
   return 0;
 }

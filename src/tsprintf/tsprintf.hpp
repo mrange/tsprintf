@@ -37,6 +37,19 @@
   (void) typesafe_printf::details::check_types<typesafe_printf::details::scanner::encode (format)> (__VA_ARGS__); \
   printf (format, ##__VA_ARGS__)
 
+// Uses snprintf internally, sprintf is more error-prone
+#define TS_FPRINTF(stream, format, ...)                                                                           \
+  (void) typesafe_printf::details::check_types<typesafe_printf::details::scanner::encode (format)> (__VA_ARGS__); \
+  fprintf (stream, format, ##__VA_ARGS__)
+
+#define TS_SPRINTF(buffer, format, ...)                                                                           \
+  (void) typesafe_printf::details::check_types<typesafe_printf::details::scanner::encode (format)> (__VA_ARGS__); \
+  snprintf (buffer, std::extent<decltype(buffer)>::value, format, ##__VA_ARGS__)
+
+#define TS_SNPRINTF(buffer, buffer_size, format, ...)                                                             \
+  (void) typesafe_printf::details::check_types<typesafe_printf::details::scanner::encode (format)> (__VA_ARGS__); \
+  snprintf (buffer, buffer_size, format, ##__VA_ARGS__)
+
 namespace typesafe_printf
 {
   namespace details

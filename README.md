@@ -51,7 +51,7 @@ In VS2015 the error looks like this:
 	1>  c:\temp\github\tsprintf\src\test_suite\../tsprintf/tsprintf.hpp(357): note: see reference to class template instantiation 'typesafe_printf::details::error_reporter<0,const char *,int>' being compiled
 ```
 
-error_reporter<0,const char *,int> is intepreted like this: For argument 0 the
+error_reporter<0,const char *,int> is interpreted like this: For argument 0 the
 argument type was const char * but was expected to be int (because of %d in the
 format string).
 
@@ -60,8 +60,12 @@ g++ gives a similar error report.
 TODO
 ----
 
-1. Implement TS_SPRINTF and all other variants
 2. Improve test suite
 3. Make it compile in clang++
 4. Performance tests (to make sure compilation times doesn't fall through the floor)
 5. Find a way to replace TS_PRINTF macro with a template method
+
+DONE:
+----
+
+1. Implement TS_SPRINTF and all other variants
