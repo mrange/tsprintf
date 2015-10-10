@@ -26,7 +26,7 @@
 #include "../tsprintf/tsprintf.hpp"
 
 
-#define TEST_CASE() TS_PRINTF("%s(%ld) : TEST_CASE - %s\n", __FILE__, __LINE__, __FUNCTION__)
+#define TEST_CASE() TS_PRINTF("%s(%d) : TEST_CASE - %s\n", __FILE__, static_cast<int> (__LINE__), __FUNCTION__)
 #define TEST_EQ(expected, actual) test_eq (__FILE__, __LINE__, expected, #expected, actual, #actual)
 
 namespace tests
@@ -41,7 +41,7 @@ namespace tests
     os << '[';
 
     auto sz = vs.size ();
-    for (auto iter = 0; iter < sz; ++iter)
+    for (auto iter = 0U; iter < sz; ++iter)
     {
       if (iter > 0)
       {
