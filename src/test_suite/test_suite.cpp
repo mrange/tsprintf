@@ -347,6 +347,20 @@ namespace tests
     TS_SNPRINTF (buffer, 20,  "Char: %c\n"      , 65          );
     TS_FPRINTF  (stdout,      "Float: %f\n"     , 3.14        );
 
+    TS_PRINTF   (
+        "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
+        "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
+        "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
+        "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
+        "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
+      , "string"
+      , "string"
+      , "string"
+      , "string"
+      , "string"
+      );
+
+
   /*
   TODO: Figure out a good way to test negative test-cases
   TS_PRINTF (
