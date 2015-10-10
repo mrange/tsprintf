@@ -219,9 +219,14 @@ namespace typesafe_printf
           ;
       }
 
+
       template<size_type N>
-      constexpr bool binary_any_of (char ch, char const (&arr) [N], index_type begin = 0, index_type end = N) noexcept
+      constexpr bool binary_any_of (char ch, char const (&arr) [N], index_type begin = 0, index_type end = N - 1) noexcept
       {
+        // index_type end = N - 1 ==> Because last char is '\0' in string literal
+
+        static_assert (N > 0, "N must be greater than 0");
+
         return begin < end
           ? (ch < arr[(begin + end)/2]
             ? binary_any_of (ch, arr, begin, (begin + end) / 2)
@@ -255,11 +260,11 @@ namespace typesafe_printf
             ? compute_type_id (ec, count, at, cs__char, arr, i + 1)
             : (arr[i] == 's'
               ? compute_type_id (ec, count, at, cs__string, arr, i + 1)
-              : (any_of (arr[i], union_of_signed_ints)
+              : (binary_any_of (arr[i], union_of_signed_ints)
                 ? compute_type_id (ec, count, at, cs__signed_integer, arr, i + 1)
-                : (any_of (arr[i], union_of_unsigned_ints)
+                : (binary_any_of (arr[i], union_of_unsigned_ints)
                   ? compute_type_id (ec, count, at, cs__unsigned_integer, arr, i + 1)
-                  : (any_of (arr[i], union_of_floats)
+                  : (binary_any_of (arr[i], union_of_floats)
                     ? compute_type_id (ec, count, at, cs__floating_point, arr, i + 1)
                     : (arr[i] == 'n'
                       ? compute_type_id (ec, count, at, cs__chars_written, arr, i + 1)
@@ -309,7 +314,7 @@ namespace typesafe_printf
       constexpr encoded_types_t consume_options (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
       {
         return i < N && arr[i] != 0
-          ? (!any_of (arr[i], union_of_cs_at) ? consume_options (ec, count, arr, i + 1) : parse_argument_type (ec, count, arr, i))
+          ? (!binary_any_of (arr[i], union_of_cs_at) ? consume_options (ec, count, arr, i + 1) : parse_argument_type (ec, count, arr, i))
           : error_detected (ec, count, arr, i)
           ;
       }
