@@ -61,7 +61,6 @@ TODO
 ----
 
 2. Improve test suite
-3. Make it compile in clang++
 4. Performance tests (to make sure compilation times doesn't fall through the floor)
 5. Find a way to replace TS_PRINTF macro with a template method
 
@@ -69,3 +68,4 @@ DONE:
 ----
 
 1. Implement TS_SPRINTF and all other variants
+3. Make it compile in clang++
