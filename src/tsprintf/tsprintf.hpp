@@ -154,29 +154,31 @@ namespace typesafe_printf
 
       enum conversion_specifier : size_type
       {
-                                      // Maps to conversion specifier
-        cs__char              = 0x0 , /*c               */
-        cs__string            = 0x1 , /*s               */
-        cs__signed_integer    = 0x2 , /*d/i             */
-        cs__unsigned_integer  = 0x3 , /*o/x/X/u         */
-        cs__floating_point    = 0x4 , /*f/F/e/E/a/A/g/G */
-        cs__chars_written     = 0x5 , /*n               */
-        cs__pointer           = 0x6 , /*p               */
+                                          // Maps to conversion specifier
+        cs__char              = 0x0     , /*c               */
+        cs__string            = 0x1     , /*s               */
+        cs__signed_integer    = 0x2     , /*d/i             */
+        cs__unsigned_integer  = 0x3     , /*o/x/X/u         */
+        cs__floating_point    = 0x4     , /*f/F/e/E/a/A/g/G */
+        cs__chars_written     = 0x5     , /*n               */
+        cs__pointer           = 0x6     , /*p               */
+        cs__invalid           = 0x7FF   ,
       };
 
       constexpr size_type conversion_specifier__count = 7;
 
       enum argument_type : size_type
       {
-        at__hh    = 0x0 ,
-        at__h     = 0x1 ,
-        at__none  = 0x2 ,
-        at__l     = 0x3 ,
-        at__ll    = 0x4 ,
-        at__j     = 0x5 ,
-        at__z     = 0x6 ,
-        at__t     = 0x7 ,
-        at__L     = 0x8 ,
+        at__hh                = 0x0     ,
+        at__h                 = 0x1     ,
+        at__none              = 0x2     ,
+        at__l                 = 0x3     ,
+        at__ll                = 0x4     ,
+        at__j                 = 0x5     ,
+        at__z                 = 0x6     ,
+        at__t                 = 0x7     ,
+        at__L                 = 0x8     ,
+        at__invalid           = 0x7FF   ,
       };
 
       constexpr size_type argument_type__count = 9;
@@ -240,6 +242,232 @@ namespace typesafe_printf
           ;
       }
 
+      // For the parser in general I have opted for as "simple" code as possible
+      //  (simple to parse and execute) in the hope that it will impair the
+      //  compilation times the least.
+      //  There are many better ways to structure parsers but they require more
+      //  (from the parser's perspective) convoluted code
+
+#ifdef __clang__
+      // clang for some reasons blows up on the recursive constexpr parser
+      //  clang 3.4 does however support relaxed constexpr which allows
+      //  rewriting the parser to a non-recursive style
+
+      template<size_type N>
+      constexpr char take_char (
+          char const (&arr) [N]
+        , index_type & pos
+        ) noexcept
+      {
+        if (pos < N)
+        {
+          return arr[pos++];
+        }
+        else
+        {
+          return '\0';
+        }
+      }
+
+      template<size_type N>
+      constexpr char peek_char (
+          char const (&arr) [N]
+        , index_type pos
+        ) noexcept
+      {
+        if (pos < N)
+        {
+          return arr[pos];
+        }
+        else
+        {
+          return '\0';
+        }
+      }
+
+      template<size_type N>
+      constexpr conversion_specifier parse_conversion_specifier (
+          char const (&arr) [N]
+        , index_type & pos
+        ) noexcept
+      {
+        auto taken = take_char (arr, pos);
+
+        if (taken == '\0')
+        {
+          return cs__invalid;
+        }
+        else if (taken == 'c')
+        {
+          return cs__char;
+        }
+        else if (taken == 's')
+        {
+          return cs__string;
+        }
+        else if (binary_any_of (taken, union_of_signed_ints))
+        {
+          return cs__signed_integer;
+        }
+        else if (binary_any_of (taken, union_of_unsigned_ints))
+        {
+          return cs__unsigned_integer;
+        }
+        else if (binary_any_of (taken, union_of_floats))
+        {
+          return cs__floating_point;
+        }
+        else if (taken == 'n')
+        {
+          return cs__chars_written;
+        }
+        else if (taken == 'p')
+        {
+          return cs__pointer;
+        }
+        else
+        {
+          return cs__invalid;
+        }
+      }
+
+      template<size_type N>
+      constexpr argument_type parse_argument_type (
+          char const (&arr) [N]
+        , index_type & pos
+        ) noexcept
+      {
+        switch (peek_char (arr, pos))
+        {
+          case '\0':
+            // Don't increment pos
+            return at__invalid;
+          case 'h':
+            ++pos;
+            switch (peek_char (arr, pos))
+            {
+            case '\0':
+              // Don't increment pos
+              return at__invalid;
+            case 'h':
+              ++pos;
+              return at__hh;
+            default:
+              // Don't increment pos
+              return at__h;
+            }
+            break;
+          case 'l':
+            ++pos;
+            switch (peek_char (arr, pos))
+            {
+            case '\0':
+              // Don't increment pos
+              return at__invalid;
+            case 'l':
+              ++pos;
+              return at__ll;
+            default:
+              // Don't increment pos
+              return at__l;
+            }
+            break;
+          case 'j':
+            ++pos;
+            return at__j;
+          case 'z':
+            ++pos;
+            return at__z;
+          case 't':
+            ++pos;
+            return at__t;
+          case 'L':
+            ++pos;
+            return at__L;
+          default:
+            // Don't increment pos
+            return at__none;
+        }
+      }
+
+      template<size_type N>
+      constexpr bool consume_options (
+          char const (&arr) [N]
+        , index_type & pos
+        ) noexcept
+      {
+        while (pos < N && arr[pos] != '\0')
+        {
+          if (binary_any_of (arr[pos], union_of_cs_at))
+          {
+            return true;
+          }
+          ++pos;
+        }
+
+        return false;
+      }
+
+      template<size_type N>
+      constexpr encoded_types_t encode (char const (&arr) [N]) noexcept
+      {
+        index_type      pos           = 0U;
+        encoded_types_t encoded_types = 0U;
+        size_type       count         = 0U;
+
+        while (pos < N && arr[pos] != '\0')
+        {
+          // Is it a format specifier?
+          if (take_char (arr ,pos) != '%')
+          {
+            continue;
+          }
+
+          auto peek = peek_char (arr, pos);
+
+          // End of stream?
+          if (peek == '\0')
+          {
+            continue;
+          }
+
+          // Double %% is an escaped %
+          if (peek == '%')
+          {
+            ++pos;
+            continue;
+          }
+
+          if (!consume_options (arr, pos))
+          {
+            // consume options failed
+            continue;
+          }
+
+          auto at = parse_argument_type (arr, pos);
+          if (at == at__invalid)
+          {
+            encoded_types = merge_type (encoded_types, count++, tid__error_type);
+
+            continue;
+          }
+
+          auto cs = parse_conversion_specifier (arr, pos);
+          if (cs == cs__invalid)
+          {
+            encoded_types = merge_type (encoded_types, count++, tid__error_type);
+
+            continue;
+          }
+
+          auto type_id = get_type_id (at, cs);
+
+          encoded_types = merge_type (encoded_types, count++, type_id);
+        }
+
+        return encoded_types;
+      }
+#else
       template<size_type N>
       constexpr encoded_types_t scan (
           encoded_types_t ec
@@ -402,6 +630,7 @@ namespace typesafe_printf
       {
         return scan (0, 0, arr, 0);
       }
+#endif
     }
 
     template<size_type Pos, typename TArg, typename TExpected>
