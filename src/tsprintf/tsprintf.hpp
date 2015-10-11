@@ -109,36 +109,36 @@ namespace typesafe_printf
       using type = error_type;
     };
 
-    TYPESAFE_PRINTF__TYPE_MAP (tid__char_p              , char const *                );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__double              , double                      );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__int                 , int                         );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__int_p               , int const *                 );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__intmax_t            , std::intmax_t               );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__intmax_t_p          , std::intmax_t const *       );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__long                , long                        );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__long_double         , long double                 );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__long_long           , long long                   );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__long_long_p         , long long const *           );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__long_p              , long const *                );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__ptrdiff_t           , std::ptrdiff_t              );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__ptrdiff_t_p         , std::ptrdiff_t const *      );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__short               , short                       );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__short_p             , short const *               );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_char         , signed char                 );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_char_p       , signed char const *         );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t       , std::size_t                 );  // TODO: Should be signed std::size_t
-    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t_p     , std::size_t const *         );  // TODO: Should be signed std::size_t
-    TYPESAFE_PRINTF__TYPE_MAP (tid__size_t              , std::size_t                 );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__uintmax_t           , std::uintmax_t              );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_char       , unsigned char               );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_int        , unsigned int                );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_long       , unsigned long               );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_long_long  , unsigned long long          );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_ptrdiff_t  , std::ptrdiff_t              );  // TODO: Should be unsigned std::ptrdiff_t
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_short      , unsigned short              );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__void_p              , void const *                );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__wchar_t_p           , wchar_t const *             );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__wint_t              , std::wint_t                 );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__char_p            , char const *          );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__double            , double                );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__int               , int                   );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__int_p             , int const *           );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__intmax_t          , std::intmax_t         );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__intmax_t_p        , std::intmax_t const * );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__long              , long                  );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__long_double       , long double           );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__long_long         , long long             );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__long_long_p       , long long const *     );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__long_p            , long const *          );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__ptrdiff_t         , std::ptrdiff_t        );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__ptrdiff_t_p       , std::ptrdiff_t const *);
+    TYPESAFE_PRINTF__TYPE_MAP (tid__short             , short                 );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__short_p           , short const *         );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_char       , signed char           );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_char_p     , signed char const *   );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t     , std::size_t           );  // TODO: Should be signed std::size_t
+    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t_p   , std::size_t const *   );  // TODO: Should be signed std::size_t
+    TYPESAFE_PRINTF__TYPE_MAP (tid__size_t            , std::size_t           );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__uintmax_t         , std::uintmax_t        );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_char     , unsigned char         );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_int      , unsigned int          );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_long     , unsigned long         );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_long_long, unsigned long long    );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_ptrdiff_t, std::ptrdiff_t        );  // TODO: Should be unsigned std::ptrdiff_t
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_short    , unsigned short        );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__void_p            , void const *          );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__wchar_t_p         , wchar_t const *       );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__wint_t            , std::wint_t           );
 
     template<encoded_types_t encoded_types>
     using type_id_map_t = typename type_id_map<encoded_types>::type;
@@ -221,10 +221,13 @@ namespace typesafe_printf
 
 
       template<size_type N>
-      constexpr bool binary_any_of (char ch, char const (&arr) [N], index_type begin = 0, index_type end = N - 1) noexcept
+      constexpr bool binary_any_of (
+          char ch
+        , char const (&arr) [N]
+        , index_type begin = 0
+        , index_type end = N - 1  // -1 ==> Because last char is '\0' in string literal
+        ) noexcept
       {
-        // index_type end = N - 1 ==> Because last char is '\0' in string literal
-
         static_assert (N > 0, "N must be greater than 0");
 
         return begin < end
@@ -238,22 +241,45 @@ namespace typesafe_printf
       }
 
       template<size_type N>
-      constexpr encoded_types_t scan (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept;
+      constexpr encoded_types_t scan (
+          encoded_types_t ec
+        , size_type count
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept;
 
       template<size_type N>
-      constexpr encoded_types_t error_detected (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t error_detected (
+          encoded_types_t ec
+        , size_type count
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept
       {
         return scan (merge_type (ec, count, tid__error_type), count + 1, arr, i);
       }
 
       template<size_type N>
-      constexpr encoded_types_t compute_type_id (encoded_types_t ec, size_type count, argument_type at, conversion_specifier cs, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t compute_type_id (
+          encoded_types_t ec
+        , size_type count
+        , argument_type at
+        , conversion_specifier cs
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept
       {
         return scan (merge_type (ec, count, get_type_id (at, cs)), count + 1, arr, i);
       }
 
       template<size_type N>
-      constexpr encoded_types_t parse_conversion_specifier (encoded_types_t ec, size_type count, argument_type at, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t parse_conversion_specifier (
+          encoded_types_t ec
+        , size_type count
+        , argument_type at
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept
       {
         return i < N && arr[i] != 0
           ? (arr[i] == 'c'
@@ -277,20 +303,35 @@ namespace typesafe_printf
 
 
       template<size_type N>
-      constexpr encoded_types_t parse_argument_type_2 (encoded_types_t ec, size_type count, char ch, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t parse_argument_type_2 (
+          encoded_types_t ec
+        , size_type count
+        , char ch
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept
       {
         return i < N && arr[i] != 0
           ? (ch == 'h'
-            ? (arr[i] == 'h' ? parse_conversion_specifier (ec, count, at__hh, arr, i + 1) : parse_conversion_specifier (ec, count, at__h, arr, i))
+            ? (arr[i] == 'h'
+              ? parse_conversion_specifier (ec, count, at__hh, arr, i + 1)
+              : parse_conversion_specifier (ec, count, at__h, arr, i))
             : (ch == 'l'
-              ? (arr[i] == 'l' ? parse_conversion_specifier (ec, count, at__ll, arr, i + 1) : parse_conversion_specifier (ec, count, at__l, arr, i))
+              ? (arr[i] == 'l'
+                ? parse_conversion_specifier (ec, count, at__ll, arr, i + 1)
+                : parse_conversion_specifier (ec, count, at__l, arr, i))
               : error_detected (ec, count, arr, i)))
           : error_detected (ec, count, arr, i)
           ;
       }
 
       template<size_type N>
-      constexpr encoded_types_t parse_argument_type (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t parse_argument_type (
+          encoded_types_t ec
+        , size_type count
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept
       {
         return i < N && arr[i] != 0
           ? (arr[i] == 'h'
@@ -311,28 +352,47 @@ namespace typesafe_printf
       }
 
       template<size_type N>
-      constexpr encoded_types_t consume_options (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t consume_options (
+          encoded_types_t ec
+        , size_type count
+        , char const (&arr) [N]
+        , index_type i
+        ) noexcept
       {
         return i < N && arr[i] != 0
-          ? (!binary_any_of (arr[i], union_of_cs_at) ? consume_options (ec, count, arr, i + 1) : parse_argument_type (ec, count, arr, i))
+          ? (!binary_any_of (arr[i], union_of_cs_at)
+            ? consume_options (ec, count, arr, i + 1)
+            : parse_argument_type (ec, count, arr, i))
           : error_detected (ec, count, arr, i)
           ;
       }
 
       template<size_type N>
-      constexpr encoded_types_t start_token_found (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t start_token_found (
+          encoded_types_t ec
+        , size_type count
+        , char const (&arr) [N], index_type i
+        ) noexcept
       {
         return i < N && arr[i] != 0
-          ? (arr[i] != '%' ? consume_options (ec, count, arr, i) : scan (ec, count, arr, i + 1))
+          ? (arr[i] != '%'
+            ? consume_options (ec, count, arr, i)
+            : scan (ec, count, arr, i + 1)) // double %% is an escaped %
           : error_detected (ec, count, arr, i)
           ;
       }
 
       template<size_type N>
-      constexpr encoded_types_t scan (encoded_types_t ec, size_type count, char const (&arr) [N], index_type i) noexcept
+      constexpr encoded_types_t scan (
+          encoded_types_t ec
+        , size_type count
+        , char const (&arr) [N], index_type i
+        ) noexcept
       {
         return i < N && arr[i] != 0
-          ? (arr[i] != '%' ? scan (ec, count, arr, i + 1) : start_token_found (ec, count, arr, i + 1))
+          ? (arr[i] != '%'
+            ? scan (ec, count, arr, i + 1)
+            : start_token_found (ec, count, arr, i + 1))
           : ec
           ;
       }
@@ -347,9 +407,18 @@ namespace typesafe_printf
     template<size_type Pos, typename TArg, typename TExpected>
     struct error_reporter
     {
-      static_assert (!std::is_same<error_type, TExpected>::value  , "Malformed format string"                                   );
-      static_assert (std::is_pod<TArg>::value                     , "Argument must be a POD type (see argument list)"           );
-      static_assert (std::is_same<TArg, TExpected>::value         , "Type mismatch between format string and provided argument" );
+      static_assert (
+          !std::is_same<error_type, TExpected>::value
+        , "Malformed format string"
+        );
+      static_assert (
+          std::is_pod<TArg>::value
+        , "Argument must be a POD type (see argument list)"
+        );
+      static_assert (
+          std::is_same<TArg, TExpected>::value
+        , "Type mismatch between format string and provided argument"
+        );
 
       using type = TExpected;
     };
@@ -360,7 +429,10 @@ namespace typesafe_printf
     template<size_type Pos, typename ...TArgs>
     struct type_checker<false, Pos, 0U, TArgs...>
     {
-      static_assert (0U == sizeof... (TArgs), "Too many arguments passed to ts_printf (see format string)");
+      static_assert (
+          0U == sizeof... (TArgs)
+        , "Too many arguments passed to ts_printf (see format string)"
+        );
 
       enum
       {
@@ -371,7 +443,10 @@ namespace typesafe_printf
     template<size_type Pos, encoded_types_t EncodedTypes>
     struct type_checker<true, Pos, EncodedTypes>
     {
-      static_assert (0U == EncodedTypes, "Too few arguments passed to ts_printf (see format string)");
+      static_assert (
+          0U == EncodedTypes
+        , "Too few arguments passed to ts_printf (see format string)"
+        );
 
       enum
       {
@@ -379,8 +454,9 @@ namespace typesafe_printf
       };
     };
 
-    template<size_type Pos, encoded_types_t EncodedTypes, typename THead, typename ...TArgs>
-    struct type_checker<true, Pos, EncodedTypes, THead, TArgs...> : type_checker<(EncodedTypes >> type_id__bits) != 0, Pos + 1, (EncodedTypes >> type_id__bits), TArgs...>
+    template<size_type Pos, encoded_types_t EncodedTypes, typename THead, typename ...TTail>
+    struct type_checker<true, Pos, EncodedTypes, THead, TTail...>
+      : type_checker<(EncodedTypes >> type_id__bits) != 0, Pos + 1, (EncodedTypes >> type_id__bits), TTail...>
     {
       enum : encoded_types_t
       {
@@ -388,7 +464,8 @@ namespace typesafe_printf
       };
 
       // using arg_type = std::decay_t<THead>;
-      using arg_type = typename std::decay<THead>::type;  // std::decay_t doesn't exist in GCC 4.8.1
+      // std::decay_t doesn't exist in GCC 4.8.1, use std::decay instead
+      using arg_type = typename std::decay<THead>::type;
       using exp_type = type_id_map_t<encoded_type>;
 
       using type    = typename error_reporter<Pos, arg_type, exp_type>::type;
@@ -398,7 +475,10 @@ namespace typesafe_printf
     template<encoded_types_t EncodedTypes, typename ...TArgs>
     constexpr int check_types (TArgs && ...args) noexcept
     {
-      static_assert (sizeof... (TArgs) <= details::max_encoded_types, "Too many arguments passed to ts_printf (max_encoded_types is the upper limit)");
+      static_assert (
+          sizeof... (TArgs) <= details::max_encoded_types
+        , "Too many arguments passed to ts_printf (max_encoded_types is the upper limit)"
+        );
       return type_checker<EncodedTypes != 0, 0U, EncodedTypes, TArgs...>::zero;
     }
   }
