@@ -55,7 +55,7 @@ error_reporter<0,const char *,int> is interpreted like this: For argument 0 the
 argument type was const char * but was expected to be int (because of %d in the
 format string).
 
-g++ gives a similar error report.
+clang/g++ gives a similar error report.
 
 TODO
 ----
