@@ -103,6 +103,51 @@ namespace typesafe_printf
 
     constexpr size_type max_encoded_types   = (sizeof(encoded_types_t) * 8) / type_id__bits;
 
+    template<int n>
+    struct matching_int;
+
+    template<>
+    struct matching_int<1>
+    {
+      using stype = std::int8_t ;
+      using utype = std::uint8_t;
+    };
+
+    template<>
+    struct matching_int<2>
+    {
+      using stype = std::int16_t ;
+      using utype = std::uint16_t;
+    };
+
+    template<>
+    struct matching_int<4>
+    {
+      using stype = std::int32_t ;
+      using utype = std::uint32_t;
+    };
+
+    template<>
+    struct matching_int<8>
+    {
+      using stype = std::int64_t ;
+      using utype = std::uint64_t;
+    };
+
+    template<typename T>
+    using matching_signed_int   = typename matching_int<sizeof (T)>::stype;
+
+    template<typename T>
+    using matching_unsigned_int = typename matching_int<sizeof (T)>::utype;
+
+    // TODO: Is there a better way to create these int versions?
+    //  The obvious `std::size_t signed` doesn't work
+
+    // signed std::size_t
+    using ssize_t               = matching_signed_int<std::size_t>;
+    // unsigned std::ptrdiff_t
+    using uptrdiff_t            = matching_unsigned_int<std::ptrdiff_t>;
+
     template<encoded_types_t encoded_types>
     struct type_id_map
     {
@@ -126,15 +171,15 @@ namespace typesafe_printf
     TYPESAFE_PRINTF__TYPE_MAP (tid__short_p           , short const *         );
     TYPESAFE_PRINTF__TYPE_MAP (tid__signed_char       , signed char           );
     TYPESAFE_PRINTF__TYPE_MAP (tid__signed_char_p     , signed char const *   );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t     , std::size_t           );  // TODO: Should be signed std::size_t
-    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t_p   , std::size_t const *   );  // TODO: Should be signed std::size_t
+    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t     , ssize_t               );
+    TYPESAFE_PRINTF__TYPE_MAP (tid__signed_size_t_p   , ssize_t const *       );
     TYPESAFE_PRINTF__TYPE_MAP (tid__size_t            , std::size_t           );
     TYPESAFE_PRINTF__TYPE_MAP (tid__uintmax_t         , std::uintmax_t        );
     TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_char     , unsigned char         );
     TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_int      , unsigned int          );
     TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_long     , unsigned long         );
     TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_long_long, unsigned long long    );
-    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_ptrdiff_t, std::ptrdiff_t        );  // TODO: Should be unsigned std::ptrdiff_t
+    TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_ptrdiff_t, uptrdiff_t            );
     TYPESAFE_PRINTF__TYPE_MAP (tid__unsigned_short    , unsigned short        );
     TYPESAFE_PRINTF__TYPE_MAP (tid__void_p            , void const *          );
     TYPESAFE_PRINTF__TYPE_MAP (tid__wchar_t_p         , wchar_t const *       );
@@ -194,6 +239,7 @@ namespace typesafe_printf
 /*f/F/e/E/a/A/g/G */{ tid__error_type     , tid__error_type     , tid__double       , tid__double         , tid__error_type         , tid__error_type , tid__error_type       , tid__error_type         , tid__long_double  },
 /*n               */{ tid__signed_char_p  , tid__short_p        , tid__int_p        , tid__long_p         , tid__long_long_p        , tid__intmax_t_p , tid__signed_size_t_p  , tid__ptrdiff_t_p        , tid__error_type   },
 /*p               */{ tid__error_type     , tid__error_type     , tid__void_p       , tid__error_type     , tid__error_type         , tid__error_type , tid__error_type       , tid__error_type         , tid__error_type   },
+//                    hh                    h                     (none)              l                     ll                        j                 z                       t                         L
       };
 
       constexpr type_id get_type_id (argument_type at, conversion_specifier cs) noexcept
@@ -220,7 +266,6 @@ namespace typesafe_printf
           : false
           ;
       }
-
 
       template<size_type N>
       constexpr bool binary_any_of (
@@ -259,14 +304,10 @@ namespace typesafe_printf
         , index_type & pos
         ) noexcept
       {
-        if (pos < N)
-        {
-          return arr[pos++];
-        }
-        else
-        {
-          return '\0';
-        }
+        return pos < N
+          ? arr[pos++]
+          : '\0'
+          ;
       }
 
       template<size_type N>
@@ -275,14 +316,10 @@ namespace typesafe_printf
         , index_type pos
         ) noexcept
       {
-        if (pos < N)
-        {
-          return arr[pos];
-        }
-        else
-        {
-          return '\0';
-        }
+        return pos < N
+          ? arr[pos]
+          : '\0'
+          ;
       }
 
       template<size_type N>
@@ -528,7 +565,6 @@ namespace typesafe_printf
           : error_detected (ec, count, arr, i)
           ;
       }
-
 
       template<size_type N>
       constexpr encoded_types_t parse_argument_type_2 (
