@@ -75,7 +75,8 @@ namespace tests
   template<typename T>
   struct fixup_type
   {
-    // std::decay_t doesn't exist in GCC 4.8.3, use std::decay instead
+    // using type = add_const_to_pointee_t<std::decay<T>_t::type>;
+    // std::decay_t doesn't exist in GCC 4.8.1, use std::decay instead
     using type = add_const_to_pointee_t<typename std::decay<T>::type>;
   };
 
