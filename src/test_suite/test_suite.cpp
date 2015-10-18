@@ -56,6 +56,48 @@ namespace tests
     return os;
   }
 
+  template<typename T>
+  struct add_const_to_pointee
+  {
+    using type = T;
+  };
+
+  template<typename T>
+  struct add_const_to_pointee<T *>
+  {
+    using type = T const *;
+  };
+
+  template<typename T>
+  using add_const_to_pointee_t = typename add_const_to_pointee<T>::type;
+
+  template<typename T>
+  struct fixup_type
+  {
+    using type = add_const_to_pointee_t<std::decay_t<T>>;
+  };
+
+  template<typename T>
+  using fixup_type_t = typename fixup_type<T>::type;
+
+  template<typename TExpected, typename TActual>
+  struct comparer
+  {
+    static bool is_equal (TExpected const & expected, TActual const & actual)
+    {
+      return expected == actual;
+    }
+  };
+
+  template<>
+  struct comparer<char const *, char const *>
+  {
+    static bool is_equal (char const * expected, char const * actual)
+    {
+      return strcmp (expected, actual) == 0;
+    }
+  };
+
   template<typename TExpected, typename TActual>
   bool test_eq (
       char const *  file_name
@@ -70,12 +112,17 @@ namespace tests
     TYPESAFE_PRINTF__ASSERT (sexpected);
     TYPESAFE_PRINTF__ASSERT (sactual);
 
-    if (expected == actual)
+    using expected_t  = fixup_type_t<TExpected>       ;
+    using actual_t    = fixup_type_t<TActual>         ;
+    using comparer_t  = comparer<expected_t, actual_t>;
+
+    if (comparer_t::is_equal (expected, actual))
     {
       return true;
     }
     else
     {
+      printf ("%s, %s\n", typeid (expected_t).name (), typeid (actual_t).name ());
       ++errors;
       std::cout
         << file_name
@@ -345,19 +392,24 @@ namespace tests
   {
     TEST_CASE ();
 
-    char buffer[100] {};
+    char buffer[1024] {};
 
-    // TODO: Test each variant once using a short format string
-    //  The rest of the test cases should be sprintf:ed to a buffer and buffer validated
+    TS_PRINTF   (             "TS_PRINTF\n" );
 
-    TS_PRINTF   (             "None\n"                        );
-    TS_PRINTF   (             "Pair %s,%lld\n"  , "World", 3LL);
-    TS_SPRINTF  (buffer,      "Int: %d\n"       , 3           );
-    TS_SNPRINTF (buffer, 20,  "Char: %c\n"      , 65          );
-    TS_FPRINTF  (stdout,      "Float: %f\n"     , 3.14        );
+    TS_SPRINTF  (buffer,      "TS_SPRINTF"  );
+    TEST_EQ     ("TS_SPRINTF" ,buffer);
 
-    TS_PRINTF   (
-        "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
+    TS_SNPRINTF (buffer, 20,  "TS_SNPRINTF" );
+    TEST_EQ     ("TS_SNPRINTF",buffer);
+
+    TS_FPRINTF  (stdout,      "TS_FPRINTF\n");
+
+    TS_SPRINTF  (buffer,      "TS_SPRINTF: %d\n%s\n",  3, "Hello");
+    TEST_EQ     ("TS_SPRINTF: 3\nHello\n" ,buffer);
+
+    TS_SPRINTF  (
+        buffer
+      , "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
         "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
         "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
         "This is a long format %s, the purpose is to make sure we don't hit any funny compiler limits.\n"
@@ -411,35 +463,37 @@ namespace tests
     wchar_t const *         v_wchar_t_p              = L"1E"                ;
     std::wint_t             v_wint_t                 = 0x1F                 ;
 
-    // TODO: These test cases should sprintf to a buffer and then buffer validated
+    // These are positive test cases making sure valid code compiles.
+    //  As the actual runtime just forwards it to sprintf there's not
+    //  much value in checking the actual sprintf:ing.
 
     // char formatters
-    TS_PRINTF   ("%%c: %c, %lc\n", v_int, v_wint_t);
+    TS_SPRINTF  (buffer,  "%%c: %c, %lc", v_int, v_wint_t);
     // string formatters
-    TS_PRINTF   ("%%s: %s, %ls\n", v_char_p, v_wchar_t_p);
+    TS_SPRINTF  (buffer,  "%%s: %s, %ls", v_char_p, v_wchar_t_p);
     // integer formatters
-    TS_PRINTF   ("%%d: %hhd, %hd, %d, %ld, %lld, %jd, %zd, %td\n", v_signed_char, v_short, v_int, v_long, v_long_long, v_intmax_t, v_signed_size_t, v_ptrdiff_t);
-    TS_PRINTF   ("%%i: %hhi, %hi, %i, %li, %lli, %ji, %zi, %ti\n", v_signed_char, v_short, v_int, v_long, v_long_long, v_intmax_t, v_signed_size_t, v_ptrdiff_t);
-    TS_PRINTF   ("%%o: %hho, %ho, %o, %lo, %llo, %jo, %zo, %to\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
-    TS_PRINTF   ("%%x: %hhx, %hx, %x, %lx, %llx, %jx, %zx, %tx\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
-    TS_PRINTF   ("%%X: %hhX, %hX, %X, %lX, %llX, %jX, %zX, %tX\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
-    TS_PRINTF   ("%%u: %hhu, %hu, %u, %lu, %llu, %ju, %zu, %tu\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_SPRINTF  (buffer,  "%%d: %hhd, %hd, %d, %ld, %lld, %jd, %zd, %td", v_signed_char, v_short, v_int, v_long, v_long_long, v_intmax_t, v_signed_size_t, v_ptrdiff_t);
+    TS_SPRINTF  (buffer,  "%%i: %hhi, %hi, %i, %li, %lli, %ji, %zi, %ti", v_signed_char, v_short, v_int, v_long, v_long_long, v_intmax_t, v_signed_size_t, v_ptrdiff_t);
+    TS_SPRINTF  (buffer,  "%%o: %hho, %ho, %o, %lo, %llo, %jo, %zo, %to", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_SPRINTF  (buffer,  "%%x: %hhx, %hx, %x, %lx, %llx, %jx, %zx, %tx", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_SPRINTF  (buffer,  "%%X: %hhX, %hX, %X, %lX, %llX, %jX, %zX, %tX", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_SPRINTF  (buffer,  "%%u: %hhu, %hu, %u, %lu, %llu, %ju, %zu, %tu", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
     // floating point formatters
-    TS_PRINTF   ("%%f: %f, %lf, %Lf\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%F: %F, %lF, %LF\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%e: %e, %le, %Le\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%E: %E, %lE, %LE\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%a: %a, %la, %La\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%A: %A, %lA, %LA\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%g: %g, %lg, %Lg\n", v_double, v_double, v_long_double);
-    TS_PRINTF   ("%%G: %G, %lG, %LG\n", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%f: %f, %lf, %Lf", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%F: %F, %lF, %LF", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%e: %e, %le, %Le", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%E: %E, %lE, %LE", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%a: %a, %la, %La", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%A: %A, %lA, %LA", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%g: %g, %lg, %Lg", v_double, v_double, v_long_double);
+    TS_SPRINTF  (buffer,  "%%G: %G, %lG, %LG", v_double, v_double, v_long_double);
     // %n formatters
-    TS_PRINTF   ("%%n: %hhn, %hn, %n, %ln, %lln, %jn, %zn, %tn\n", v_signed_char_p, v_short_p, v_int_p, v_long_p, v_long_long_p, v_intmax_t_p, v_signed_size_t_p, v_ptrdiff_t_p);
+    TS_SPRINTF  (buffer,  "%%n: %hhn, %hn, %n, %ln, %lln, %jn, %zn, %tn", v_signed_char_p, v_short_p, v_int_p, v_long_p, v_long_long_p, v_intmax_t_p, v_signed_size_t_p, v_ptrdiff_t_p);
     // pointer formatters
-    TS_PRINTF   ("%%p: %p\n", v_void_p);
+    TS_SPRINTF  (buffer,  "%%p: %p", v_void_p);
 
     // non-const pointee check
-    TS_PRINTF   ("non-const: %s, %ls, %p\n", unconst (v_char_p), unconst (v_wchar_t_p), unconst (v_void_p));
+    TS_SPRINTF  (buffer,  "non-const: %s, %ls, %p", unconst (v_char_p), unconst (v_wchar_t_p), unconst (v_void_p));
   /*
   TODO: Figure out a good way to test negative test-cases like below:
 
