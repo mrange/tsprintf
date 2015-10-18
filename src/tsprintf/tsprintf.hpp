@@ -669,6 +669,37 @@ namespace typesafe_printf
 #endif
     }
 
+    template<typename TActual, typename TExpected>
+    struct check_type
+    {
+      enum
+      {
+        value = false,
+      };
+    };
+
+    // Allow non-const pointee when we expect const pointee
+    //  This is the typical behavior of c++
+    //  char * can be casted implicitly to char const * for input params
+    template<typename T>
+    struct check_type<T *, T const *>
+    {
+      enum
+      {
+        value = true,
+      };
+    };
+
+    // Types are identical, all good
+    template<typename T>
+    struct check_type<T, T>
+    {
+      enum
+      {
+        value = true,
+      };
+    };
+
     template<size_type Pos, typename TArg, typename TExpected>
     struct error_reporter
     {
@@ -681,7 +712,7 @@ namespace typesafe_printf
         , "Argument must be a POD type (see argument list)"
         );
       static_assert (
-          std::is_same<TArg, TExpected>::value
+          check_type<TArg, TExpected>::value
         , "Type mismatch between format string and provided argument"
         );
 

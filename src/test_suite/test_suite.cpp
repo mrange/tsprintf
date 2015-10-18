@@ -335,6 +335,12 @@ namespace tests
     }
   }
 
+  template<typename T>
+  auto unconst (T const * p)
+  {
+    return const_cast<T*> (p);
+  }
+
   void test__printf_variants ()
   {
     TEST_CASE ();
@@ -432,8 +438,8 @@ namespace tests
     // pointer formatters
     TS_PRINTF   ("%%p: %p\n", v_void_p);
 
-
-
+    // non-const pointee check
+    TS_PRINTF   ("non-const: %s, %ls, %p\n", unconst (v_char_p), unconst (v_wchar_t_p), unconst (v_void_p));
   /*
   TODO: Figure out a good way to test negative test-cases like below:
 
