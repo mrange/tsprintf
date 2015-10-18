@@ -341,6 +341,9 @@ namespace tests
 
     char buffer[100] {};
 
+    // TODO: Test each variant once using a short format string
+    //  The rest of the test cases should be sprintf:ed to a buffer and buffer validated
+
     TS_PRINTF   (             "None\n"                        );
     TS_PRINTF   (             "Pair %s,%lld\n"  , "World", 3LL);
     TS_SPRINTF  (buffer,      "Int: %d\n"       , 3           );
@@ -360,13 +363,88 @@ namespace tests
       , "string"
       );
 
+    using signed_size_t       = typesafe_printf::details::ssize_t   ;
+    using unsigned_ptrdiff_t  = typesafe_printf::details::uptrdiff_t;
+
+    char const *            v_char_p                 = "02"                 ;
+    double                  v_double                 = 0x03                 ;
+    int                     v_int                    = 0x04                 ;
+    int                     nv_int_p                 = 0x05                 ;
+    int *                   v_int_p                  = &nv_int_p            ;
+    std::intmax_t           v_intmax_t               = 0x06                 ;
+    std::intmax_t           nv_intmax_t              = 0x07                 ;
+    std::intmax_t *         v_intmax_t_p             = &nv_intmax_t         ;
+    long                    v_long                   = 0x08                 ;
+    long double             v_long_double            = 0x09                 ;
+    long long               v_long_long              = 0x0A                 ;
+    long long               nv_long_long_p           = 0x0B                 ;
+    long long *             v_long_long_p            = &nv_long_long_p      ;
+    long                    nv_long_p                = 0x0C                 ;
+    long *                  v_long_p                 = &nv_long_p           ;
+    std::ptrdiff_t          v_ptrdiff_t              = 0x0D                 ;
+    std::ptrdiff_t          nv_ptrdiff_t_p           = 0x0E                 ;
+    std::ptrdiff_t *        v_ptrdiff_t_p            = &nv_ptrdiff_t_p      ;
+    short                   v_short                  = 0x0F                 ;
+    short                   nv_short_p               = 0x10                 ;
+    short *                 v_short_p                = &nv_short_p          ;
+    char signed             v_signed_char            = 0x11                 ;
+    char signed             nv_signed_char_p         = 0x12                 ;
+    char signed *           v_signed_char_p          = &nv_signed_char_p    ;
+    signed_size_t           v_signed_size_t          = 0x13                 ;
+    signed_size_t           nv_signed_size_t_p       = 0x14                 ;
+    signed_size_t *         v_signed_size_t_p        = &nv_signed_size_t_p  ;
+    std::size_t             v_size_t                 = 0x15                 ;
+    std::uintmax_t          v_uintmax_t              = 0x16                 ;
+    char unsigned           v_unsigned_char          = 0x17                 ;
+    int unsigned            v_unsigned_int           = 0x18                 ;
+    long unsigned           v_unsigned_long          = 0x19                 ;
+    long long unsigned      v_unsigned_long_long     = 0x1A                 ;
+    unsigned_ptrdiff_t      v_unsigned_ptrdiff_t     = 0x1B                 ;
+    short unsigned          v_unsigned_short         = 0x1C                 ;
+    void const *            v_void_p                 = (void const *)0x1D   ;
+    wchar_t const *         v_wchar_t_p              = L"1E"                ;
+    std::wint_t             v_wint_t                 = 0x1F                 ;
+
+    // TODO: These test cases should sprintf to a buffer and then buffer validated
+
+    // char formatters
+    TS_PRINTF   ("%%c: %c, %lc\n", v_int, v_wint_t);
+    // string formatters
+    TS_PRINTF   ("%%s: %s, %ls\n", v_char_p, v_wchar_t_p);
+    // integer formatters
+    TS_PRINTF   ("%%d: %hhd, %hd, %d, %ld, %lld, %jd, %zd, %td\n", v_signed_char, v_short, v_int, v_long, v_long_long, v_intmax_t, v_signed_size_t, v_ptrdiff_t);
+    TS_PRINTF   ("%%i: %hhi, %hi, %i, %li, %lli, %ji, %zi, %ti\n", v_signed_char, v_short, v_int, v_long, v_long_long, v_intmax_t, v_signed_size_t, v_ptrdiff_t);
+    TS_PRINTF   ("%%o: %hho, %ho, %o, %lo, %llo, %jo, %zo, %to\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_PRINTF   ("%%x: %hhx, %hx, %x, %lx, %llx, %jx, %zx, %tx\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_PRINTF   ("%%X: %hhX, %hX, %X, %lX, %llX, %jX, %zX, %tX\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    TS_PRINTF   ("%%u: %hhu, %hu, %u, %lu, %llu, %ju, %zu, %tu\n", v_unsigned_char, v_unsigned_short, v_unsigned_int, v_unsigned_long, v_unsigned_long_long, v_uintmax_t, v_size_t, v_unsigned_ptrdiff_t);
+    // floating point formatters
+    TS_PRINTF   ("%%f: %f, %lf, %Lf\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%F: %F, %lF, %LF\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%e: %e, %le, %Le\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%E: %E, %lE, %LE\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%a: %a, %la, %La\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%A: %A, %lA, %LA\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%g: %g, %lg, %Lg\n", v_double, v_double, v_long_double);
+    TS_PRINTF   ("%%G: %G, %lG, %LG\n", v_double, v_double, v_long_double);
+    // %n formatters
+    TS_PRINTF   ("%%n: %hhn, %hn, %n, %ln, %lln, %jn, %zn, %tn\n", v_signed_char_p, v_short_p, v_int_p, v_long_p, v_long_long_p, v_intmax_t_p, v_signed_size_t_p, v_ptrdiff_t_p);
+    // pointer formatters
+    TS_PRINTF   ("%%p: %p\n", v_void_p);
+
+
 
   /*
-  TODO: Figure out a good way to test negative test-cases
+  TODO: Figure out a good way to test negative test-cases like below:
+
   TS_PRINTF (
       "Due to type mismatch compilation stops here... %d\n"
     , "Because this is not an int"
     );
+
+  int v = 0;
+  int const * p = &v;
+  TS_PRINTF ("%n", p);  // p should be non-const *
   */
 
 
@@ -375,6 +453,11 @@ namespace tests
 
 int main()
 {
+#ifdef _MSC_VER
+  // to enable %n support in Visual C++
+  _set_printf_count_output (1);
+#endif
+
   tests::test__printf_variants  ();
   tests::test__scanner_literals ();
   tests::test__scanner_any_of   ();
