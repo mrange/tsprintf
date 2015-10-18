@@ -17,6 +17,7 @@
 #include "stdafx.h"
 
 #include <algorithm>
+#include <cstring>
 #include <initializer_list>
 #include <iostream>
 #include <sstream>
@@ -74,7 +75,8 @@ namespace tests
   template<typename T>
   struct fixup_type
   {
-    using type = add_const_to_pointee_t<std::decay_t<T>>;
+    // std::decay_t doesn't exist in GCC 4.8.3, use std::decay instead
+    using type = add_const_to_pointee_t<typename std::decay<T>::type>;
   };
 
   template<typename T>
@@ -94,7 +96,7 @@ namespace tests
   {
     static bool is_equal (char const * expected, char const * actual)
     {
-      return strcmp (expected, actual) == 0;
+      return std::strcmp (expected, actual) == 0;
     }
   };
 
@@ -122,7 +124,6 @@ namespace tests
     }
     else
     {
-      printf ("%s, %s\n", typeid (expected_t).name (), typeid (actual_t).name ());
       ++errors;
       std::cout
         << file_name
